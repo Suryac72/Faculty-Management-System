@@ -10,6 +10,8 @@ const Faculty = require("./models/faculty");
 const Subject = require("./models/subjects");
 const Department = require("./models/department");
 
+
+
 const app = express();
 
 app.use(morgan('dev'));
@@ -30,7 +32,6 @@ app.use((error,req,res,next) =>{
 })
 
 const PORT = process.env.PORT || 3000;
-
 
 Faculty.hasMany(Department);
 Department.hasMany(Subject);
