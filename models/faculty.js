@@ -1,6 +1,13 @@
-const Sequelize = require("sequelize");
 const sequelize = require("../util/database");
 const {roles} = require("../util/constants");
+const { Sequelize, DataTypes } = require('sequelize');
+const useBcrypt = require('sequelize-bcrypt');
+
+const options = {
+    field: 'password', // secret field to hash, default: 'password'
+    rounds: 12, // used to generate bcrypt salt, default: 12
+    compare: 'authenticate', // method used to compare secrets, default: 'authenticate'
+  }
 
 const Faculty = sequelize.define("faculty", {
     id: {
@@ -18,7 +25,7 @@ const Faculty = sequelize.define("faculty", {
         allowNull: false,
     },
     contactNumber: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         allowNull: false,
     },
     address: {
@@ -35,4 +42,5 @@ const Faculty = sequelize.define("faculty", {
     }
 });
 
+useBcrypt(Faculty, options);
 module.exports = Faculty;
