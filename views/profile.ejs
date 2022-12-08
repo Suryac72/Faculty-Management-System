@@ -4,8 +4,12 @@
 
 <div class="profile">
   <div>
-    <p class="title">ID</p>
+    <p class="title">Id</p>
     <p class="subtitle"><%= person.id %></p>
+  </div>
+  <div>
+    <p class="title">Name</p>
+    <p class="subtitle"><%= person.name %></p>
   </div>
   <div>
     <p class="title">Email/username</p>
@@ -16,8 +20,12 @@
     <p class="subtitle"><%= person.role %></p>
   </div>
   <div>
-    <p class="title">User object</p>
-    <pre class="subtitle"><%= person %></pre>
+    <p class="title">Contact Number</p>
+    <pre class="subtitle"><%= person.contactNumber %></pre>
+  </div>
+  <div>
+    <p class="title">Address</p>
+    <pre class="subtitle"><%= person.address %></pre>
   </div>
 </div>
 <%- include('./layouts/footer') %>

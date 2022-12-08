@@ -1,18 +1,19 @@
 const express = require("express");
 const createHttpErrors = require("http-errors");
 const morgan = require("morgan");
-
+const cookieParser = require('cookie-parser');
 require('dotenv').config()
 
+const { DataTypes } = require("sequelize")
 const Sequelize = require("sequelize");
 const sequelize = require("./util/database");
 const Admin = require("./models/admin");
-const Faculty = require("./models/faculty");
+const Faculty = require("./models/faculty")(sequelize,DataTypes);
 const Subject = require("./models/subjects");
 const Department = require("./models/department");
 const session = require('express-session');
 const connectFlash = require('connect-flash');
-
+const passport = require('passport');
 
 //Initializing App
 const app = express();
@@ -28,13 +29,19 @@ app.use(express.urlencoded({extended: false}));
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
     cookie:{
-        //secure:true, :for https protocol
-        httpOnly:true,
-    }
+        httpOnly:true
+    },
 })
 );
+
+
+//For Passport JS Authentication
+app.use(passport.initialize())
+app.use(passport.session())
+require('./util/passport.auth')
+
 
 app.use(connectFlash());
 app.use((req,res,next) =>{
