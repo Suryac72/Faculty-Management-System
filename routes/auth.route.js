@@ -2,9 +2,10 @@ const router = require('express').Router()
 const sequelize = require('../util/database');
 const { DataTypes } = require("sequelize")
 const Faculty = require('../models/faculty')(sequelize, DataTypes);
-const { check, validationResult } = require('express-validator');
 const passport = require('passport')
-const connectEnsureLogin = require('connect-ensure-login')
+const { check, validationResult } = require('express-validator');
+const connectEnsureLogin = require('connect-ensure-login');
+const { roles } = require('../util/constants');
 
 
 
@@ -69,6 +70,7 @@ router.post('/register', connectEnsureLogin.ensureLoggedOut({redirectTo:'/'})
             }
             const doesExist = await Faculty.findOne({ where: { email: req.body.email } });
             if (doesExist) {
+                req.flash('warning', 'Username/email already exists');
                 res.redirect('/auth/register');
                 return;
             }
@@ -77,7 +79,7 @@ router.post('/register', connectEnsureLogin.ensureLoggedOut({redirectTo:'/'})
             sequelize.sync()
                 .then((result) => {
                     Faculty.create({ name: req.body.name, email: req.body.email, contactNumber: req.body.contact,
-                         address: req.body.address, password: req.body.password });
+                         address: req.body.address, password: req.body.password});
                     req.flash('success',`${user.email} registered successfully`)
                     res.redirect('/auth/login');
                 })
@@ -95,18 +97,18 @@ router.post('/register', connectEnsureLogin.ensureLoggedOut({redirectTo:'/'})
 
 module.exports = router;
 
-function ensureAuthenticated(req, res, next){
-    if(req.isAuthenticated()){
-        next()
-    }else{
-        res.redirect('/auth/login');
-    }
-}
+// function ensureAuthenticated(req, res, next){
+//     if(req.isAuthenticated()){
+//         next()
+//     }else{
+//         res.redirect('/auth/login');
+//     }
+// }
 
-function ensureNotAuthenticated(req, res, next){
-    if(req.isAuthenticated()){
-        res,redirect('back')
-    }else{
-        next();
-    }
-}
+// function ensureNotAuthenticated(req, res, next){
+//     if(req.isAuthenticated()){
+//         res,redirect('back')
+//     }else{
+//         next();
+//     }
+// }

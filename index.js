@@ -13,7 +13,8 @@ const session = require('express-session');
 const connectFlash = require('connect-flash');
 const passport = require('passport');
 const SequelizeStore = require("connect-session-sequelize")(session.Store);
-const connectEnsureLogin = require('connect-ensure-login')
+const connectEnsureLogin = require('connect-ensure-login');
+const { roles } = require("./util/constants");
 
 
 
@@ -21,7 +22,7 @@ const connectEnsureLogin = require('connect-ensure-login')
 //Initializing App
 const app = express();
 
-app.use(cookieParser()); 
+app.use(cookieParser());
 app.use(morgan('dev'));
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
@@ -41,8 +42,8 @@ app.use(session({
     },
     store: new SequelizeStore({
         db: sequelize
-      }),
-    
+    }),
+
 })
 );
 
@@ -68,7 +69,16 @@ app.use((req, res, next) => {
 //Routes
 app.use('/', require('./routes/index.route'));
 app.use('/auth', require('./routes/auth.route'))
-app.use('/user', connectEnsureLogin.ensureLoggedIn({redirectTo:'/auth/login'}), require('./routes/user.route'))
+app.use('/user', connectEnsureLogin.ensureLoggedIn({ redirectTo: '/auth/login' }),
+require('./routes/user.route')
+);
+
+app.use('/admin', connectEnsureLogin.ensureLoggedIn({ redirectTo: '/auth/login' }),
+    ensureAdmin,
+    require('./routes/admin.route')
+);
+
+
 
 app.use((req, res, next) => {
     next(createHttpErrors.NotFound());
@@ -118,3 +128,13 @@ sequelize
 //         res.redirect('/auth/login');
 //     }
 // }
+
+function ensureAdmin(req, res, next) {
+    if (req.user.role === roles.admin) {
+        next()
+    } else {
+        req.flash('warning', 'you are not Authorized to access this page');
+        res.redirect('/')
+    }
+}
+
