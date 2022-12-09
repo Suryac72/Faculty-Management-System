@@ -4,32 +4,37 @@ const { DataTypes } = require("sequelize")
 const Faculty = require('../models/faculty')(sequelize, DataTypes);
 const { check, validationResult } = require('express-validator');
 const passport = require('passport')
+const connectEnsureLogin = require('connect-ensure-login')
 
-router.get('/login', async (req, res, next) => {
+
+
+router.get('/login',connectEnsureLogin.ensureLoggedOut({redirectTo:'/'}), async (req, res, next) => {
     res.render('login');
 })
 
-router.get('/register', async (req, res, next) => {
+router.get('/register', connectEnsureLogin.ensureLoggedOut({redirectTo:'/'}), async (req, res, next) => {
     res.render('register');
 })
 
 
-
-router.get('/logout', function(req, res, next) {
+router.get('/logout',  connectEnsureLogin.ensureLoggedIn({redirectTo:'/'}), function(req, res, next) {
     req.logout(function() {
       res.redirect('/');    
     });
   });
 
-router.post('/login',passport.authenticate('local',{
-    successRedirect :"/user/profile",
+router.post('/login', connectEnsureLogin.ensureLoggedOut({redirectTo:'/'}), passport.authenticate('local',{
+    //successRedirect :"/user/profile",
+    successReturnToOrRedirect: '/',
     failureRedirect: "/auth/login",
     failureFlash: true,
 },
 
 ));
 
-router.post('/register'
+
+
+router.post('/register', connectEnsureLogin.ensureLoggedOut({redirectTo:'/'})
     , [
         check('email', 'Email length should be 10 to 30 characters')
             .isEmail().isLength({ min: 10, max: 30 }),
@@ -88,4 +93,20 @@ router.post('/register'
 
     })
 
-module.exports = router
+module.exports = router;
+
+function ensureAuthenticated(req, res, next){
+    if(req.isAuthenticated()){
+        next()
+    }else{
+        res.redirect('/auth/login');
+    }
+}
+
+function ensureNotAuthenticated(req, res, next){
+    if(req.isAuthenticated()){
+        res,redirect('back')
+    }else{
+        next();
+    }
+}
