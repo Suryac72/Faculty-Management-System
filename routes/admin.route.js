@@ -13,6 +13,18 @@ router.get('/users', async (req, res, next) => {
     }
 })
 
+router.get('/profile',async(req,res,next) =>{
+    try{
+        const person = await Faculty.findAll();
+        const profile = req.user;
+        res.render('dashboard',{person,profile});
+    }
+    catch (error) {
+        next(error);
+    }
+})
+
+
 router.get('/user/:id', async (req, res, next) => {
     try {
         const { id } = req.params; //destructuring id from url

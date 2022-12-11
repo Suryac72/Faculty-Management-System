@@ -5,8 +5,9 @@ require('dotenv').config()
 const cookieParser = require('cookie-parser');
 const { DataTypes } = require("sequelize")
 const sequelize = require("./util/database");
-const Admin = require("./models/admin");
 const Faculty = require("./models/faculty")(sequelize, DataTypes);
+const Student = require("./models/student");
+const Assignment = require('./models/assigment');
 const Subject = require("./models/subjects");
 const Department = require("./models/department");
 const session = require('express-session');
@@ -22,6 +23,7 @@ const { roles } = require("./util/constants");
 //Initializing App
 const app = express();
 
+//Initializing cookies, session, template-engine etc
 app.use(cookieParser());
 app.use(morgan('dev'));
 app.set('view engine', 'ejs');
@@ -69,8 +71,9 @@ app.use((req, res, next) => {
 
 //Routes
 app.use('/', require('./routes/index.route'));
-app.use('/auth', require('./routes/auth.route'))
-app.use('/user', connectEnsureLogin.ensureLoggedIn({ redirectTo: '/auth/login' }),
+app.use('/auth', require('./routes/auth.route'));
+app.use('/student',require('./routes/student.route'));
+app.use('/user', ensureFaculty,connectEnsureLogin.ensureLoggedIn({ redirectTo: '/auth/login' }),
 require('./routes/user.route')
 );
 
@@ -80,7 +83,7 @@ app.use('/admin', connectEnsureLogin.ensureLoggedIn({ redirectTo: '/auth/login' 
 );
 
 
-
+//Handle Errors
 app.use((req, res, next) => {
     next(createHttpErrors.NotFound());
 });
@@ -100,11 +103,14 @@ const PORT = process.env.PORT || 3000;
 
 /**
  * SYNC with DATABASE
+ * Sync relationship with Entities
  */
-
-
 Faculty.hasMany(Department);
 Department.hasMany(Subject);
+Faculty.hasMany(Student);
+Student.hasMany(Assignment);
+Student.hasMany(Subject);
+
 sequelize
     //.sync({force:true})
     .sync()
@@ -130,10 +136,21 @@ sequelize
 //     }
 // }
 
+/**
+ * Ensuring admin can't able to change role of itself
+ */
 function ensureAdmin(req, res, next) {
     if (req.user.role === roles.admin) {
         next()
     } else {
+        req.flash('warning', 'you are not Authorized to access this page');
+        res.redirect('/')
+    }
+}
+function ensureFaculty(req,res,next){
+    if(req.user.role === roles.faculty){
+        next();
+    }else{
         req.flash('warning', 'you are not Authorized to access this page');
         res.redirect('/')
     }
